@@ -8,7 +8,17 @@ Rails.application.routes.draw do
     namespace :v1 do
       resource :user, only: [:show, :update]
       resources :tracks
-      resources :jobs, only: [:index, :show]
+      resources :jobs, only: [:index, :show] do
+        resources :proposals, only: [:index, :create]
+      end
+      resources :proposals, only: [:show, :update] do
+        member do
+          delete :withdraw
+        end
+        collection do
+          get :my
+        end
+      end
       resources :conversations, only: [:index, :show, :create] do
         resources :messages, only: [:create]
       end

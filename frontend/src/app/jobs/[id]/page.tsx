@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import ContactButton from '@/components/ContactButton';
+import ProposalForm from '@/components/ProposalForm';
 
 interface Job {
   id: number;
@@ -124,7 +124,12 @@ export default async function JobDetailPage({
           </div>
 
           <div className="border-t pt-6">
-            <ContactButton jobId={job.id} clientId={job.client.id} />
+            <h2 className="text-lg font-semibold mb-4">この案件に応募する</h2>
+            <ProposalForm
+              jobUuid={job.uuid}
+              budgetMin={job.budget_min_jpy}
+              budgetMax={job.budget_max_jpy}
+            />
           </div>
         </div>
       </div>

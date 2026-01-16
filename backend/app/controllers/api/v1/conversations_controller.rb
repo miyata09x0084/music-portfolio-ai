@@ -70,6 +70,15 @@ class Api::V1::ConversationsController < ApplicationController
 
   # POST /api/v1/conversations
   def create
+    # 提案承認チェック（job_id がある場合）
+    if params.dig(:conversation, :job_id).present?
+      job = Job.find(params[:conversation][:job_id])
+      unless can_start_conversation_for_job?(job)
+        render json: { error: '承認された提案がないため、会話を開始できません' }, status: :forbidden
+        return
+      end
+    end
+
     conversation = Conversation.new(conversation_params)
 
     if conversation.save
@@ -112,5 +121,13 @@ class Api::V1::ConversationsController < ApplicationController
   def set_current_user
     # TODO: MVP後に認証実装、現在はテストユーザーを使用
     @current_user = User.find_by(email: 'client1@example.com')
+  end
+
+  def can_start_conversation_for_job?(job)
+    # クライアントは常にOK
+    return true if job.client_id == @current_user.id
+
+    # ミュージシャンは承認された提案がある場合のみ
+    Proposal.exists?(job: job, musician: @current_user, status: 'accepted')
   end
 end
