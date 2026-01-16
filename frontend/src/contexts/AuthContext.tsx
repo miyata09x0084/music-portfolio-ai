@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
+import { apiClient, clearStoredAuth, setStoredAuth } from '@/lib/api';
 
 interface User {
   id: number;
@@ -27,39 +35,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem('jwt');
-    const storedUser = localStorage.getItem('user');
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+  const logout = useCallback(() => {
+    clearStoredAuth();
+    setToken(null);
+    setUser(null);
   }, []);
 
+  const bootstrapSession = useCallback(async () => {
+    const storedToken = localStorage.getItem('jwt');
+    if (!storedToken) {
+      setIsLoading(false);
+      return;
+    }
+
+    setToken(storedToken);
+
+    try {
+      const res = await apiClient('/api/v1/user', {
+        headers: { Authorization: storedToken },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const fetchedUser = data.user ?? data;
+        setUser(fetchedUser);
+        setStoredAuth(storedToken, fetchedUser);
+      } else {
+        logout();
+      }
+    } catch (_err) {
+      logout();
+    } finally {
+      setIsLoading(false);
+    }
+  }, [logout]);
+
+  useEffect(() => {
+    bootstrapSession();
+  }, [bootstrapSession]);
+
   const login = (newToken: string, newUser: User) => {
-    localStorage.setItem('jwt', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
+    setStoredAuth(newToken, newUser);
     setToken(newToken);
     setUser(newUser);
   };
 
-  const logout = () => {
-    localStorage.removeItem('jwt');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
-  };
-
   return (
-    <AuthContext.Provider value={{
-      user,
-      token,
-      isLoading,
-      isAuthenticated: !!token && !!user,
-      login,
-      logout
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        isLoading,
+        isAuthenticated: !!token && !!user,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

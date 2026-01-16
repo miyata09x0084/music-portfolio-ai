@@ -43,14 +43,23 @@ export default function ProposalForm({ jobUuid, budgetMin, budgetMax }: Proposal
     setLoading(true);
     setError(null);
 
+    const quote = parseInt(formData.quote_total_jpy, 10);
+    const delivery = parseInt(formData.delivery_days, 10);
+
+    if (Number.isNaN(quote) || Number.isNaN(delivery)) {
+      setError('見積金額と納期は数値で入力してください');
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await apiClient(`/api/v1/jobs/${jobUuid}/proposals`, {
         method: 'POST',
         body: JSON.stringify({
           proposal: {
             cover_message: formData.cover_message,
-            quote_total_jpy: parseInt(formData.quote_total_jpy),
-            delivery_days: parseInt(formData.delivery_days),
+            quote_total_jpy: quote,
+            delivery_days: delivery,
           }
         }),
       });

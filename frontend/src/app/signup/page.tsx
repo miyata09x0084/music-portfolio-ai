@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+import { apiClient, setStoredAuth } from "@/lib/api";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -20,11 +19,8 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/sign_up`, {
+      const res = await apiClient(`/auth`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           user: {
             email,
@@ -39,11 +35,7 @@ export default function SignupPage() {
         const token = res.headers.get("Authorization");
 
         if (token) {
-          localStorage.setItem("jwt", token);
-
-          if (data.user) {
-            localStorage.setItem("user", JSON.stringify(data.user));
-          }
+          setStoredAuth(token, data.user);
 
           router.push("/upload");
         } else {

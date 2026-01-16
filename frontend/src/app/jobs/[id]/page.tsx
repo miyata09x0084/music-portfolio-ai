@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ProposalForm from '@/components/ProposalForm';
+import { API_BASE_URL } from '@/lib/api';
 
 interface Job {
   id: number;
@@ -22,8 +23,7 @@ interface Job {
 }
 
 async function getJob(id: string): Promise<Job | null> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-  const res = await fetch(`${apiUrl}/api/v1/jobs/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/api/v1/jobs/${id}`, {
     cache: 'no-store',
   });
 
@@ -54,9 +54,10 @@ function formatDate(dateString: string | null): string {
 export default async function JobDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const job = await getJob(params.id);
+  const { id } = await params;
+  const job = await getJob(id);
 
   if (!job) {
     notFound();
