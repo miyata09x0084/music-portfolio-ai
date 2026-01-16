@@ -83,8 +83,7 @@ class Api::V1::ProposalsController < ApplicationController
   private
 
   def set_job
-    job_identifier = params[:job_uuid] || params[:job_id]
-    @job = Job.find_by(uuid: job_identifier) || Job.find_by(id: job_identifier)
+    @job = Job.find_by(uuid: params[:job_uuid])
     unless @job
       render json: { error: '案件が見つかりません' }, status: :not_found
     end

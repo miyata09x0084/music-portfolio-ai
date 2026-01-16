@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiClient, setStoredAuth } from "@/lib/api";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -18,8 +19,12 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await apiClient(`/auth/sign_in`, {
+      const res = await fetch(`${API_BASE_URL}/auth/sign_in`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({
           user: {
             email,
@@ -33,7 +38,13 @@ export default function LoginPage() {
         const token = res.headers.get("Authorization") || data.token;
 
         if (token) {
-          setStoredAuth(token, data.user);
+          // JWT トークンを localStorage に保存
+          localStorage.setItem("jwt", token);
+
+          // ユーザー情報も保存（オプション）
+          if (data.user) {
+            localStorage.setItem("user", JSON.stringify(data.user));
+          }
 
           // アップロードページへリダイレクト
           router.push("/upload");

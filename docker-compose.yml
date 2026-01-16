@@ -1,16 +1,18 @@
 version: '3.8'
 services:
-  postgres:
-    image: postgres:14
+  mysql:
+    image: mysql:8.0
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: music_portfolio_ai_development
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: music_portfolio_ai_development
+      MYSQL_USER: rails_user
+      MYSQL_PASSWORD: rails_password
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
 
 volumes:
-  postgres_data:
+  mysql_data:

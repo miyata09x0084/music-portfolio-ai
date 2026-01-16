@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { API_BASE_URL } from '@/lib/api';
 
 interface Job {
   uuid: string;
@@ -17,7 +16,8 @@ interface Job {
 }
 
 async function getJobs(): Promise<Job[]> {
-  const res = await fetch(`${API_BASE_URL}/api/v1/jobs`, {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const res = await fetch(`${apiUrl}/api/v1/jobs`, {
     cache: 'no-store',
   });
 
